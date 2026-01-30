@@ -3,8 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyUserCredentials } from '@/lib/auth';
 import { createSessionCookieValue, getSessionCookieName } from '@/lib/session';
 
-const AUTH_COOKIE = getSessionCookieName();
-
 export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
@@ -33,12 +31,16 @@ export async function POST(req: NextRequest) {
   const exp = Date.now() + 1000 * 60 * 60 * 24; // 1 día
   const cookieValue = await createSessionCookieValue({ u: auth.username, r: auth.role, exp });
 
+  const forwardedProto = req.headers.get('x-forwarded-proto') || '';
+  const isHttps = forwardedProto.toLowerCase() === 'https';
+  const cookieName = getSessionCookieName({ secure: isHttps });
+
   res.cookies.set({
-    name: AUTH_COOKIE,
+    name: cookieName,
     value: cookieValue,
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: isHttps,
     path: '/',
     maxAge: 60 * 60 * 24,
   });

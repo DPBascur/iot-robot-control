@@ -18,18 +18,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
-      # Secreto para firmar/verificar sesión (OBLIGATORIO en prod)
-      AUTH_SECRET: ${AUTH_SECRET}
-      # SQLite persistente (mapeado a volumen)
-      SQLITE_PATH: /app/data/robot.sqlite
-      # Seed inicial (opcional)
-      DEFAULT_ADMIN_USER: ${DEFAULT_ADMIN_USER:-admin}
-      DEFAULT_ADMIN_PASS: ${DEFAULT_ADMIN_PASS:-admin123}
-      # Socket público para el cliente:
-      # - recomendado: dejarlo vacío y usar same-origin (Nginx proxya /socket.io)
-      # - o definirlo explícitamente a https://TU_DOMINIO
+      # En prod con Nginx se recomienda same-origin. Puedes dejarlo vacío.
       NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-}
     volumes:
       - robot_data:/app/data
@@ -45,6 +38,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.socket
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
     expose:

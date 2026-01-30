@@ -36,6 +36,7 @@ mv_*.txt
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # sqlite (local)
 /data/

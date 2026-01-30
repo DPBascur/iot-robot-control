@@ -1,5 +1,5 @@
-const COOKIE_NAME_DEV = 'robot_session';
-const COOKIE_NAME_PROD = '__Host-robot_session';
+export const COOKIE_NAME_DEV = 'robot_session';
+export const COOKIE_NAME_HOST = '__Host-robot_session';
 
 export type SessionRole = 'admin' | 'user';
 
@@ -136,6 +136,7 @@ export async function verifySessionCookieValue(value: string): Promise<SessionPa
   return payload;
 }
 
-export function getSessionCookieName() {
-  return process.env.NODE_ENV === 'production' ? COOKIE_NAME_PROD : COOKIE_NAME_DEV;
+export function getSessionCookieName(options?: { secure?: boolean }) {
+  const secure = options?.secure ?? process.env.NODE_ENV === 'production';
+  return secure ? COOKIE_NAME_HOST : COOKIE_NAME_DEV;
 }
