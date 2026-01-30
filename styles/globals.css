@@ -1,0 +1,180 @@
+@import "tailwindcss";
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    margin: 0;
+  }
+
+  /* Smooth transitions solo para colores de tema */
+  * {
+    transition-property: background-color, border-color, color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+}
+
+/* Variables de color exactas según especificación */
+:root {
+  /* LIGHT MODE (neutro, verde solo como acento) */
+  --app-bg: #F5F7F6;
+  --card-bg: #FFFFFF;
+  --border: #E5E7EB;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+
+  /* Elevación / radios (para parecerse a las capturas) */
+  --card-shadow: 0 10px 20px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.08);
+  --header-shadow: 0 6px 14px rgba(15, 23, 42, 0.10);
+  --radius-xl: 16px;
+
+  /* Header top bar */
+  --header-bg: #FFFFFF;
+  
+  /* Sidebar light mode (VERDE) */
+  --sidebar-bg: #16A34A;
+  --sidebar-hover: #15803D;
+  --sidebar-text: #ECFDF5;
+  
+  /* Acento verde (mismo en ambos modos) */
+  --accent-green: #22C55E;
+  --accent-green-soft: #86EFAC;
+  
+  /* Botones */
+  --btn-primary: #16A34A;
+  --btn-primary-hover: #15803D;
+  
+  /* Gráficos */
+  --chart-blue: #2563EB;
+  --chart-gradient: rgba(37, 99, 235, 0.15);
+
+  /* Users chart (top area) */
+  --panel-accent-bg: #16A34A;
+  --panel-bar: rgba(255, 255, 255, 0.92);
+  --panel-accent-label: rgba(255, 255, 255, 0.70);
+
+  /* Compat (nombres antiguos) */
+  --users-chart-bg: var(--panel-accent-bg);
+  --users-bar: var(--panel-bar);
+  --users-chart-label: var(--panel-accent-label);
+  
+  /* Estados */
+  --danger: #DC2626;
+}
+
+.dark {
+  /* DARK MODE (principal) */
+  --app-bg: #0B0F0E;
+  --card-bg: #111827;
+  --border: #1F2933;
+  --text-primary: #F9FAFB;
+  --text-secondary: #9CA3AF;
+
+  /* Elevación / radios */
+  --card-shadow: 0 10px 22px rgba(0, 0, 0, 0.55);
+  --header-shadow: 0 8px 18px rgba(0, 0, 0, 0.55);
+  --radius-xl: 16px;
+
+  /* Header top bar */
+  --header-bg: #111827;
+  
+  /* Sidebar dark mode (MISMO COLOR QUE CARDS para estética uniforme) */
+  --sidebar-bg: #111827;
+  --sidebar-hover: #1F2933;
+  --sidebar-text: #ECFDF5;
+  
+  /* Acento verde (mismo valor) */
+  --accent-green: #22C55E;
+  --accent-green-soft: #86EFAC;
+  
+  /* Botones (mismo valor) */
+  --btn-primary: #16A34A;
+  --btn-primary-hover: #15803D;
+  
+  /* Gráficos (mismo valor) */
+  --chart-blue: #2563EB;
+  --chart-gradient: rgba(37, 99, 235, 0.15);
+
+  /* Users chart (en dark no va verde como en light; se integra al card) */
+  --panel-accent-bg: #111827;
+  --panel-bar: rgba(255, 255, 255, 0.90);
+  --panel-accent-label: rgba(156, 163, 175, 0.85);
+
+  /* Compat (nombres antiguos) */
+  --users-chart-bg: var(--panel-accent-bg);
+  --users-bar: var(--panel-bar);
+  --users-chart-label: var(--panel-accent-label);
+
+  /* Estados (mismo valor) */
+  --danger: #DC2626;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Utility classes con variables CSS */
+.bg-app {
+  background-color: var(--app-bg);
+}
+
+.bg-card {
+  background-color: var(--card-bg);
+}
+
+.border-theme {
+  border-color: var(--border);
+}
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
