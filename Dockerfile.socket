@@ -3,7 +3,8 @@
 FROM node:20-bookworm-slim
 WORKDIR /app
 
-ENV NODE_ENV=production
+# IMPORTANTE: este servicio usa ts-node (devDependency). No lo omitas en la imagen.
+ENV NODE_ENV=development
 
 # Para ts-node (usa devDependencies en este proyecto)
 RUN apt-get update \
@@ -11,9 +12,11 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --include=dev
 
 COPY . .
+
+ENV NODE_ENV=production
 
 EXPOSE 3001
 CMD ["npm", "run", "socket"]
