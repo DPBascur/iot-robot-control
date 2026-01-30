@@ -1,25 +1,66 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Menu, Settings, Shield, User, X } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { LayoutDashboard, LogOut, Menu, Settings, Shield, User, X } from 'lucide-react';
 
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [me, setMe] = useState<null | { username: string; role: 'admin' | 'user' }>(null);
   const pathname = usePathname();
+  const router = useRouter();
 
-  const navItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/drive', label: 'Control', icon: Settings },
-    { href: '/admin', label: 'Admin', icon: Shield },
-  ];
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/auth/me', { cache: 'no-store' });
+        const data = (await res.json().catch(() => null)) as null | {
+          user?: { username?: string; role?: 'admin' | 'user' };
+        };
+        if (!res.ok) return;
+        const username = (data?.user?.username || '').trim();
+        const role = data?.user?.role === 'admin' ? 'admin' : 'user';
+        if (!cancelled && username) setMe({ username, role });
+      } catch {
+        // noop
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const navItems = useMemo(() => {
+    const items = [
+      { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/drive', label: 'Control', icon: Settings },
+      { href: '/profile', label: 'Perfil', icon: User },
+    ];
+    if (me?.role === 'admin') items.push({ href: '/admin', label: 'Admin', icon: Shield });
+    return items;
+  }, [me?.role]);
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard';
     return pathname?.startsWith(href);
+  };
+
+  const onLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } finally {
+      setIsOpen(false);
+      router.replace('/login');
+      setLoggingOut(false);
+    }
   };
 
   return (
@@ -57,6 +98,25 @@ export function Sidebar() {
         {/* Spacer */}
         <div className="flex-1" />
 
+        {/* Logout (compact) */}
+        <button
+          type="button"
+          onClick={onLogout}
+          disabled={loggingOut}
+          className="mb-4 p-3 rounded-lg transition-colors"
+          style={{ color: 'var(--sidebar-text)', opacity: loggingOut ? 0.7 : 1 }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--sidebar-hover)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+          aria-label="Cerrar sesión"
+          title="Cerrar sesión"
+        >
+          <LogOut size={22} />
+        </button>
+
         {/* Avatar */}
         <div className="pb-1">
           <div className="w-12 h-12 rounded-full bg-white overflow-hidden border-2 border-white shadow-md grid place-items-center">
@@ -67,7 +127,10 @@ export function Sidebar() {
               Bienvenido,
             </p>
             <p className="text-[9px] font-medium" style={{ color: 'var(--sidebar-text)' }}>
-              Administrador
+              {me?.username || '…'}
+            </p>
+            <p className="text-[9px]" style={{ color: 'var(--sidebar-text)', opacity: 0.75 }}>
+              {me?.role === 'admin' ? 'Admin' : 'Usuario'}
             </p>
           </div>
         </div>
@@ -160,6 +223,27 @@ export function Sidebar() {
           {/* Footer user */}
           <div className="mt-auto px-4 pb-4">
             <div className="border-t pt-4" style={{ borderColor: 'var(--sidebar-hover)' }}>
+              <button
+                type="button"
+                onClick={onLogout}
+                disabled={loggingOut}
+                className="mb-4 flex w-full items-center gap-3 rounded-lg px-3 py-3 transition-colors"
+                style={{
+                  backgroundColor: 'transparent',
+                  color: 'var(--sidebar-text)',
+                  opacity: loggingOut ? 0.7 : 1,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--sidebar-hover)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
+                <LogOut size={18} />
+                <span className="text-sm font-semibold">{loggingOut ? 'Cerrando…' : 'Cerrar sesión'}</span>
+              </button>
+
               <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-white overflow-hidden border-2 border-white shadow-md grid place-items-center">
                 <User className="w-7 h-7 block" style={{ color: 'var(--chart-blue)' }} />
@@ -169,7 +253,10 @@ export function Sidebar() {
                   Bienvenido,
                 </p>
                 <p className="text-sm font-semibold" style={{ color: 'var(--sidebar-text)' }}>
-                  Administrador
+                  {me?.username || '…'}
+                </p>
+                <p className="text-xs" style={{ color: 'var(--sidebar-text)', opacity: 0.75 }}>
+                  {me?.role === 'admin' ? 'Admin' : 'Usuario'}
                 </p>
               </div>
             </div>

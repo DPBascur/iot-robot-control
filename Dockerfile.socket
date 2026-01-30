@@ -1,0 +1,19 @@
+# syntax=docker/dockerfile:1
+
+FROM node:20-bookworm-slim
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Para ts-node (usa devDependencies en este proyecto)
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends python3 make g++ \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+
+EXPOSE 3001
+CMD ["npm", "run", "socket"]

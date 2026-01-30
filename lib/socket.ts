@@ -5,12 +5,18 @@ let socket: Socket | null = null;
 
 export const getSocket = (): Socket => {
   if (!socket) {
-    socket = io(config.socketUrl, {
+    const base = config.socketUrl;
+    socket = (base ? io(base, {
+      autoConnect: false,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
+    }) : io({
       autoConnect: false,
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionAttempts: 5
-    });
+    }));
   }
   return socket;
 };

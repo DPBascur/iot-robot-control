@@ -1,0 +1,62 @@
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - web
+      - socket
+    ports:
+      - "80:80"
+      # Para TLS, añade 443 y monta certificados (LetsEncrypt)
+      # - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    networks:
+      - appnet
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      # Secreto para firmar/verificar sesión (OBLIGATORIO en prod)
+      AUTH_SECRET: ${AUTH_SECRET}
+      # SQLite persistente (mapeado a volumen)
+      SQLITE_PATH: /app/data/robot.sqlite
+      # Seed inicial (opcional)
+      DEFAULT_ADMIN_USER: ${DEFAULT_ADMIN_USER:-admin}
+      DEFAULT_ADMIN_PASS: ${DEFAULT_ADMIN_PASS:-admin123}
+      # Socket público para el cliente:
+      # - recomendado: dejarlo vacío y usar same-origin (Nginx proxya /socket.io)
+      # - o definirlo explícitamente a https://TU_DOMINIO
+      NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-}
+    volumes:
+      - robot_data:/app/data
+    expose:
+      - "3000"
+    networks:
+      - appnet
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  socket:
+    build:
+      context: .
+      dockerfile: Dockerfile.socket
+    environment:
+      NODE_ENV: production
+    expose:
+      - "3001"
+    networks:
+      - appnet
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  appnet:
+
+volumes:
+  robot_data:

@@ -30,8 +30,19 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# temporary debug artifacts (local)
+build_*.txt
+mv_*.txt
+
 # env files (can opt-in for committing if needed)
 .env*
+
+# sqlite (local)
+/data/
+*.sqlite
+*.sqlite-journal
+*.db
+*.db-journal
 
 # vercel
 .vercel
