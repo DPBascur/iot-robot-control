@@ -10,19 +10,19 @@ export function PageShell({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--app-bg)' }}>
+    <div className="min-h-svh" style={{ backgroundColor: 'var(--app-bg)' }}>
       <Sidebar />
 
-      <main className="ml-20 p-6" style={{ marginLeft: 80, padding: 24 }}>
+      <main className="pt-16 px-4 pb-6 sm:pt-0 sm:ml-20 sm:p-6">
         <div
-          className="flex items-center justify-between rounded-xl border px-5 py-3 mb-6"
+          className="flex items-center justify-between rounded-xl border px-4 py-3 mb-4 sm:px-5 sm:mb-6"
           style={{
             backgroundColor: 'var(--header-bg)',
             borderColor: 'var(--border)',
             boxShadow: 'var(--header-shadow)',
           }}
         >
-          <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+          <h1 className="text-lg sm:text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
             {title}
           </h1>
         </div>

@@ -1,8 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useLoading } from '@/components/LoadingProvider';
 
 export function ProfilePasswordForm() {
+  const { show, hide } = useLoading();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -24,6 +26,7 @@ export function ProfilePasswordForm() {
     if (!canSave) return;
 
     setSaving(true);
+    show('Actualizando contraseña…');
     setError(null);
     setOk(null);
 
@@ -44,6 +47,7 @@ export function ProfilePasswordForm() {
       setError(err instanceof Error ? err.message : 'Error al cambiar la contraseña');
     } finally {
       setSaving(false);
+      hide();
     }
   };
 

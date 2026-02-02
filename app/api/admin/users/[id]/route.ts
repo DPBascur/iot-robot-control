@@ -28,20 +28,22 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
 
   const body = (await req.json().catch(() => null)) as null | {
     username?: string;
+    email?: string | null;
     password?: string;
     role?: 'admin' | 'user';
   };
 
   const username = body?.username?.trim();
+  const email = typeof body?.email === 'string' ? body.email.trim() : body?.email === null ? null : undefined;
   const password = body?.password?.trim();
   const role = body?.role;
 
-  if (!username && !password && !role) {
+  if (!username && email === undefined && !password && !role) {
     return NextResponse.json({ error: 'Nada para actualizar' }, { status: 400 });
   }
 
   try {
-    const user = updateUser(id, { username, password, role });
+    const user = updateUser(id, { username, email, password, role });
     return NextResponse.json({ user });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'No se pudo actualizar';

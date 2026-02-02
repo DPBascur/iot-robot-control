@@ -8,7 +8,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link
             href="/dashboard"
-            className="p-6 border transition-transform"
+            className="p-4 sm:p-6 border transition-transform"
             style={{
               backgroundColor: 'var(--card-bg)',
               borderColor: 'var(--border)',
@@ -26,7 +26,7 @@ export default function Home() {
 
           <Link
             href="/drive"
-            className="p-6 border transition-transform"
+            className="p-4 sm:p-6 border transition-transform"
             style={{
               backgroundColor: 'var(--card-bg)',
               borderColor: 'var(--border)',
@@ -44,7 +44,7 @@ export default function Home() {
 
           <Link
             href="/admin"
-            className="p-6 border transition-transform"
+            className="p-4 sm:p-6 border transition-transform"
             style={{
               backgroundColor: 'var(--card-bg)',
               borderColor: 'var(--border)',

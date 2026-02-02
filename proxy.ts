@@ -11,7 +11,13 @@ function isPublicAssetPath(pathname: string) {
 }
 
 function isPublicApiPath(pathname: string) {
-  return pathname === '/api/health' || pathname === '/api/auth/login' || pathname === '/api/auth/logout';
+  return (
+    pathname === '/api/health' ||
+    pathname === '/api/auth/login' ||
+    pathname === '/api/auth/logout' ||
+    pathname === '/api/auth/forgot-password' ||
+    pathname === '/api/auth/reset-password'
+  );
 }
 
 function userAllowedPagePath(pathname: string) {
@@ -27,10 +33,18 @@ export async function proxy(req: NextRequest) {
   }
 
   // Public routes
-  if (pathname.startsWith('/login') || isPublicApiPath(pathname)) {
+  if (
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/reset-password') ||
+    isPublicApiPath(pathname)
+  ) {
     // Si ya hay sesión, evita volver al login
     const session = await getRequestSession(req);
-    if (session && pathname.startsWith('/login')) {
+    if (
+      session &&
+      (pathname.startsWith('/login') || pathname.startsWith('/forgot-password') || pathname.startsWith('/reset-password'))
+    ) {
       const next = req.nextUrl.searchParams.get('next') || '';
       const desired = next.startsWith('/') ? next : '';
 

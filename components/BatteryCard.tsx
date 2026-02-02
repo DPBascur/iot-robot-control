@@ -28,6 +28,11 @@ export function BatteryCard({
 }) {
   const target = clamp(batteryPercent, 0, 100);
   const [display, setDisplay] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     let rafId = 0;
@@ -58,10 +63,11 @@ export function BatteryCard({
   const voltage = useMemo(() => round(batteryVoltageFromPercent(target), 2), [target]);
   const temp = useMemo(() => round(temperatureC, 1), [temperatureC]);
   const lastUpdateLabel = useMemo(() => {
+    if (!mounted) return '—';
     if (!updatedAt) return '—';
     const seconds = Math.max(0, Math.round((Date.now() - updatedAt) / 1000));
     return seconds <= 1 ? 'hace 1s' : `hace ${seconds}s`;
-  }, [updatedAt]);
+  }, [mounted, updatedAt]);
 
   return (
     <div 

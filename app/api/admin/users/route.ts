@@ -24,11 +24,13 @@ export async function POST(req: NextRequest) {
 
   const body = (await req.json().catch(() => null)) as null | {
     username?: string;
+    email?: string;
     password?: string;
     role?: 'admin' | 'user';
   };
 
   const username = (body?.username || '').trim();
+  const email = (body?.email || '').trim();
   const password = (body?.password || '').trim();
   const role = body?.role === 'admin' ? 'admin' : 'user';
 
@@ -37,7 +39,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const user = createUser(username, password, role);
+    const user = createUser(username, password, role, email || undefined);
     return NextResponse.json({ user }, { status: 201 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'No se pudo crear el usuario';

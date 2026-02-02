@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { UserRound } from 'lucide-react';
+import { Eye, EyeOff, UserRound } from 'lucide-react';
 
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useLoading } from '@/components/LoadingProvider';
 
 type LoginState = {
   username: string;
@@ -15,6 +16,8 @@ type LoginState = {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { show, hide } = useLoading();
+  const [showPassword, setShowPassword] = useState(false);
   const [state, setState] = useState<LoginState>({
     username: '',
     password: '',
@@ -40,6 +43,7 @@ export default function LoginPage() {
 
     setSubmitting(true);
     setError(null);
+    show('Iniciando sesión…');
 
     try {
       const res = await fetch('/api/auth/login', {
@@ -60,11 +64,13 @@ export default function LoginPage() {
         return;
       }
 
+      show('Entrando…');
       router.replace(nextPath || '/dashboard');
     } catch {
       setError('Error de red. Intenta de nuevo.');
     } finally {
       setSubmitting(false);
+      hide();
     }
   };
 
@@ -242,28 +248,40 @@ export default function LoginPage() {
               }}
             />
 
-            <input
-              type="password"
-              autoComplete="current-password"
-              placeholder="Contraseña"
-              value={state.password}
-              onChange={(e) => setState((s) => ({ ...s, password: e.target.value }))}
-              className="h-11 w-full rounded-md px-4 outline-none transition-[transform,box-shadow] duration-200"
-              style={{
-                backgroundColor: 'var(--auth-input-bg)',
-                border: '1px solid var(--auth-input-border)',
-                color: 'var(--text-primary)',
-                boxShadow: 'var(--auth-input-shadow)',
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.boxShadow = '0 0 0 4px rgba(34, 197, 94, 0.18)';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.boxShadow = 'var(--auth-input-shadow)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                placeholder="Contraseña"
+                value={state.password}
+                onChange={(e) => setState((s) => ({ ...s, password: e.target.value }))}
+                className="h-11 w-full rounded-md pl-4 pr-11 outline-none transition-[transform,box-shadow] duration-200"
+                style={{
+                  backgroundColor: 'var(--auth-input-bg)',
+                  border: '1px solid var(--auth-input-border)',
+                  color: 'var(--text-primary)',
+                  boxShadow: 'var(--auth-input-shadow)',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(34, 197, 94, 0.18)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.boxShadow = 'var(--auth-input-shadow)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md"
+                style={{ color: 'var(--text-secondary)' }}
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
 
             {error ? (
               <div
@@ -321,11 +339,9 @@ export default function LoginPage() {
               </label>
 
               <Link
-                href="#"
-                onClick={(e) => e.preventDefault()}
+                href="/forgot-password"
                 className="font-medium"
                 style={{ color: 'var(--auth-link)' }}
-                title="Función pendiente"
               >
                 ¿Olvidaste tu contraseña?
               </Link>

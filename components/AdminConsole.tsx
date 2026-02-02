@@ -1,13 +1,15 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, RefreshCw, Trash2, UserCog } from 'lucide-react';
+import { Eye, EyeOff, Plus, RefreshCw, Trash2, UserCog } from 'lucide-react';
+import { useLoading } from '@/components/LoadingProvider';
 
 type TabKey = 'users' | 'robots';
 
 type UserRow = {
   id: number;
   username: string;
+  email: string | null;
   role: 'admin' | 'user';
   createdAt: string;
 };
@@ -21,6 +23,9 @@ function formatCreatedAt(value: string) {
 }
 
 export function AdminConsole() {
+  const { show, hide } = useLoading();
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
   const [tab, setTab] = useState<TabKey>('users');
 
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -29,11 +34,13 @@ export function AdminConsole() {
 
   const [creating, setCreating] = useState(false);
   const [newUsername, setNewUsername] = useState('');
+  const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'admin' | 'user'>('user');
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editUsername, setEditUsername] = useState('');
+  const [editEmail, setEditEmail] = useState('');
   const [editPassword, setEditPassword] = useState('');
   const [editRole, setEditRole] = useState<'admin' | 'user'>('user');
 
@@ -44,6 +51,7 @@ export function AdminConsole() {
   const loadUsers = async () => {
     setLoadingUsers(true);
     setUsersError(null);
+    show('Cargando usuarios…');
     try {
       const res = await fetch('/api/admin/users', { cache: 'no-store' });
       const data = (await res.json().catch(() => null)) as null | { users?: UserRow[]; error?: string };
@@ -53,6 +61,7 @@ export function AdminConsole() {
       setUsersError(err instanceof Error ? err.message : 'Error al cargar usuarios');
     } finally {
       setLoadingUsers(false);
+      hide();
     }
   };
 
@@ -68,17 +77,19 @@ export function AdminConsole() {
 
     setCreating(true);
     setUsersError(null);
+    show('Creando usuario…');
 
     try {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ username: newUsername, password: newPassword, role: newRole }),
+        body: JSON.stringify({ username: newUsername, email: newEmail || undefined, password: newPassword, role: newRole }),
       });
       const data = (await res.json().catch(() => null)) as null | { user?: UserRow; error?: string };
       if (!res.ok) throw new Error(data?.error || 'No se pudo crear');
 
       setNewUsername('');
+      setNewEmail('');
       setNewPassword('');
       setNewRole('user');
       await loadUsers();
@@ -86,12 +97,14 @@ export function AdminConsole() {
       setUsersError(err instanceof Error ? err.message : 'Error al crear usuario');
     } finally {
       setCreating(false);
+      hide();
     }
   };
 
   const startEdit = (u: UserRow) => {
     setEditingId(u.id);
     setEditUsername(u.username);
+    setEditEmail(u.email || '');
     setEditPassword('');
     setEditRole(u.role);
   };
@@ -99,25 +112,35 @@ export function AdminConsole() {
   const cancelEdit = () => {
     setEditingId(null);
     setEditUsername('');
+    setEditEmail('');
     setEditPassword('');
     setEditRole('user');
+    setShowEditPassword(false);
   };
 
   const saveEdit = async (id: number) => {
     const username = editUsername.trim();
+    const email = editEmail.trim();
     const password = editPassword.trim();
 
     const original = users.find((u) => u.id === id);
     const roleChanged = !!original && original.role !== editRole;
-    if (!username && !password && !roleChanged) return;
+    const emailChanged = !!original && (original.email || '') !== email;
+    if (!username && !emailChanged && !password && !roleChanged) return;
 
     setUsersError(null);
+    show('Guardando cambios…');
 
     try {
       const res = await fetch(`/api/admin/users/${id}`, {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ username, password: password || undefined, role: editRole }),
+        body: JSON.stringify({
+          username,
+          email: email.length > 0 ? email : null,
+          password: password || undefined,
+          role: editRole,
+        }),
       });
 
       const data = (await res.json().catch(() => null)) as null | { user?: UserRow; error?: string };
@@ -127,6 +150,8 @@ export function AdminConsole() {
       await loadUsers();
     } catch (err) {
       setUsersError(err instanceof Error ? err.message : 'Error al actualizar');
+    } finally {
+      hide();
     }
   };
 
@@ -135,6 +160,7 @@ export function AdminConsole() {
     if (!ok) return;
 
     setUsersError(null);
+    show('Eliminando usuario…');
 
     try {
       const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
@@ -143,6 +169,8 @@ export function AdminConsole() {
       await loadUsers();
     } catch (err) {
       setUsersError(err instanceof Error ? err.message : 'Error al eliminar');
+    } finally {
+      hide();
     }
   };
 
@@ -205,7 +233,7 @@ export function AdminConsole() {
 
       {/* Panel */}
       <section
-        className="p-6 border"
+        className="p-4 sm:p-6 border"
         style={{
           backgroundColor: 'var(--card-bg)',
           borderColor: 'var(--border)',
@@ -229,7 +257,10 @@ export function AdminConsole() {
             </div>
 
             {/* Create */}
-            <form onSubmit={onCreate} className="grid gap-3 md:grid-cols-[1fr_1fr_180px_auto] items-end">
+            <form
+              onSubmit={onCreate}
+              className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 items-end"
+            >
               <div>
                 <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
                   Usuario
@@ -245,14 +276,15 @@ export function AdminConsole() {
                   }}
                 />
               </div>
+
               <div>
                 <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
-                  Contraseña
+                  Email (opcional)
                 </label>
                 <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
                   className="h-11 w-full rounded-md px-4 outline-none"
                   style={{
                     backgroundColor: 'var(--auth-input-bg)',
@@ -261,6 +293,36 @@ export function AdminConsole() {
                   }}
                 />
               </div>
+
+              <div>
+                <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
+                  Contraseña
+                </label>
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="h-11 w-full rounded-md pl-4 pr-11 outline-none"
+                    style={{
+                      backgroundColor: 'var(--auth-input-bg)',
+                      border: '1px solid var(--border)',
+                      color: 'var(--text-primary)',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword((v) => !v)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md"
+                    style={{ color: 'var(--text-secondary)' }}
+                    aria-label={showNewPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    title={showNewPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
+                    {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
                   Rol
@@ -282,7 +344,7 @@ export function AdminConsole() {
               <button
                 type="submit"
                 disabled={!canCreate}
-                className="h-11 rounded-md px-4 font-semibold inline-flex items-center gap-2"
+                className="h-11 rounded-md px-4 font-semibold inline-flex items-center gap-2 lg:col-span-1"
                 style={{
                   backgroundColor: canCreate ? 'var(--btn-primary)' : 'rgba(22, 163, 74, 0.45)',
                   color: '#fff',
@@ -313,6 +375,7 @@ export function AdminConsole() {
                 <thead>
                   <tr style={{ color: 'var(--text-secondary)' }}>
                     <th className="text-left font-semibold pb-3">Usuario</th>
+                    <th className="text-left font-semibold pb-3">Email</th>
                     <th className="text-left font-semibold pb-3">Rol</th>
                     <th className="text-left font-semibold pb-3">Creado</th>
                     <th className="text-right font-semibold pb-3">Acciones</th>
@@ -321,13 +384,13 @@ export function AdminConsole() {
                 <tbody>
                   {loadingUsers ? (
                     <tr>
-                      <td colSpan={4} className="py-4" style={{ color: 'var(--text-secondary)' }}>
+                      <td colSpan={5} className="py-4" style={{ color: 'var(--text-secondary)' }}>
                         Cargando…
                       </td>
                     </tr>
                   ) : users.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="py-4" style={{ color: 'var(--text-secondary)' }}>
+                      <td colSpan={5} className="py-4" style={{ color: 'var(--text-secondary)' }}>
                         No hay usuarios.
                       </td>
                     </tr>
@@ -352,6 +415,26 @@ export function AdminConsole() {
                               <span style={{ color: 'var(--text-primary)' }}>{u.username}</span>
                             )}
                           </td>
+
+                          <td className="py-3" style={{ color: 'var(--text-secondary)' }}>
+                            {isEditing ? (
+                              <input
+                                type="email"
+                                value={editEmail}
+                                onChange={(e) => setEditEmail(e.target.value)}
+                                placeholder="email@dominio.com"
+                                className="h-10 w-full rounded-md px-3 outline-none"
+                                style={{
+                                  backgroundColor: 'var(--auth-input-bg)',
+                                  border: '1px solid var(--border)',
+                                  color: 'var(--text-primary)',
+                                }}
+                              />
+                            ) : (
+                              <span>{u.email || '—'}</span>
+                            )}
+                          </td>
+
                           <td className="py-3" style={{ color: 'var(--text-secondary)' }}>
                             {isEditing ? (
                               <select
@@ -387,18 +470,32 @@ export function AdminConsole() {
                           <td className="py-3">
                             {isEditing ? (
                               <div className="flex flex-col md:flex-row gap-2 justify-end">
-                                <input
-                                  type="password"
-                                  value={editPassword}
-                                  onChange={(e) => setEditPassword(e.target.value)}
-                                  placeholder="Nueva contraseña (opcional)"
-                                  className="h-10 w-full md:w-56 rounded-md px-3 outline-none"
-                                  style={{
-                                    backgroundColor: 'var(--auth-input-bg)',
-                                    border: '1px solid var(--border)',
-                                    color: 'var(--text-primary)',
-                                  }}
-                                />
+                                <div className="w-full md:w-56">
+                                  <div className="relative">
+                                    <input
+                                      type={showEditPassword ? 'text' : 'password'}
+                                      value={editPassword}
+                                      onChange={(e) => setEditPassword(e.target.value)}
+                                      placeholder="Nueva contraseña (opcional)"
+                                      className="h-10 w-full rounded-md pl-3 pr-10 outline-none"
+                                      style={{
+                                        backgroundColor: 'var(--auth-input-bg)',
+                                        border: '1px solid var(--border)',
+                                        color: 'var(--text-primary)',
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => setShowEditPassword((v) => !v)}
+                                      className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-md"
+                                      style={{ color: 'var(--text-secondary)' }}
+                                      aria-label={showEditPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                                      title={showEditPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                                    >
+                                      {showEditPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                  </div>
+                                </div>
                                 <button
                                   type="button"
                                   onClick={() => saveEdit(u.id)}

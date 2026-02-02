@@ -2,31 +2,35 @@
 
 Aplicación web para control remoto de un robot IoT en tiempo real con telemetría y una vista de control tipo juego.
 
-La app Next.js vive en la carpeta [iot-robot-control/](iot-robot-control).
+La app Next.js vive en la raíz de este repo.
 
 ## Características
 
 - Control en tiempo real (desktop con teclado, móvil con doble joystick)
 - Dashboard de telemetría (batería, velocidad, estado)
+- Autenticación propia (sin NextAuth): SQLite + bcrypt + cookie firmada (HMAC) con expiración
+- Roles y permisos (admin/user) + protección de rutas/APIs
+- Panel Admin (CRUD de usuarios)
+- Recuperación y restablecimiento de contraseña (token con expiración)
+- Loader global para acciones (login, admin, perfil, etc.)
 - UI con modo claro/oscuro (tema del sistema + override manual)
 - Socket.IO para comunicación bidireccional
 - Preparado para integrar video (placeholder por ahora)
 
 ## Estructura
 
-La app está dentro de [iot-robot-control/](iot-robot-control):
-
 ```
-iot-robot-control/
+.
 ├── app/                    # Rutas (App Router)
 │   ├── dashboard/          # Telemetría
 │   ├── drive/              # Control + cámara (mobile/desktop)
 │   ├── admin/              # Admin
 │   └── api/health/         # Health check
 ├── components/             # UI + pantallas complejas
-├── lib/                    # Config, tipos y socket client
+├── lib/                    # Config, DB, auth, tipos y helpers
 ├── server/                 # Socket.IO dev server + robot simulado
-└── styles/                 # Tokens CSS y estilos globales
+├── styles/                 # Tokens CSS y estilos globales
+└── proxy.ts                # Protección de rutas/APIs (RBAC)
 ```
 
 ## Requisitos
@@ -34,17 +38,13 @@ iot-robot-control/
 - Node.js 20.9+ (requisito de Next.js 16)
 
 ## Instalación
-
-Desde la carpeta de la app:
-
 ```bash
-cd iot-robot-control
 npm install
 ```
 
 ## Ejecución
 
-Todos estos comandos se ejecutan dentro de [iot-robot-control/](iot-robot-control).
+Todos estos comandos se ejecutan en la raíz del repo.
 
 ### Desarrollo (solo Next.js)
 
@@ -81,11 +81,32 @@ npm run dev:all
 
 ## Variables de entorno
 
-Crea [iot-robot-control/.env.local](iot-robot-control/.env.local):
+Usa [.env.example](.env.example) como base y crea `.env.local` (o `.env`) en la raíz:
 
 ```env
 NEXT_PUBLIC_ROBOT_ID=robot-001
-NEXT_PUBLIC_SOCKET_URL=http://localhost:3001
+# En Docker+Nginx (recomendado): dejar vacío para same-origin (Nginx proxya /socket.io)
+# En desarrollo local sin Nginx, usa: http://localhost:3001
+NEXT_PUBLIC_SOCKET_URL=
+
+# Recomendado (sesiones y reset de contraseña)
+AUTH_SECRET=pon-aqui-un-secreto-largo-y-unico
+
+# Opcional (seed admin si DB vacía)
+DEFAULT_ADMIN_USER=admin
+DEFAULT_ADMIN_PASS=admin123
+
+# Opcional (ruta SQLite)
+# SQLITE_PATH=/var/lib/iot-robot/robot.sqlite
+
+# Email (SMTP) para recuperación de contraseña (producción)
+# Puedes usar proveedores con plan gratis (Brevo/Sendinblue, Mailjet, SMTP2GO, etc.)
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM="IoT Robot <no-reply@tudominio.com>"
 ```
 
 ## Base de datos (SQLite) y despliegue
@@ -191,6 +212,57 @@ El sistema se divide en 3 piezas:
 
 ## Theming (claro/oscuro)
 
-- Tokens CSS en [iot-robot-control/styles/globals.css](iot-robot-control/styles/globals.css)
+- Tokens CSS en [styles/globals.css](styles/globals.css)
 - `next-themes` aplica el tema por clase (`.dark`)
 - El toggle de tema está en el sidebar (en escritorio)
+
+## Autenticación, roles y rutas
+
+Esta app usa una autenticación propia (sin NextAuth):
+
+- Usuarios en SQLite (`better-sqlite3`)
+- Passwords hasheadas con `bcryptjs`
+- Sesión en cookie firmada con HMAC (usa `AUTH_SECRET`) y expiración por defecto de 1 día
+- RBAC (admin/user) aplicado en el middleware/proxy de la app (ver `proxy.ts`)
+
+Rutas principales:
+
+- `/login`: inicio de sesión
+- `/dashboard`: telemetría (requiere sesión)
+- `/drive`: control (requiere sesión)
+- `/profile`: perfil (requiere sesión)
+- `/admin`: consola admin (solo admin)
+
+APIs principales:
+
+- `/api/auth/login`, `/api/auth/logout`, `/api/auth/me`
+- `/api/admin/users` (solo admin)
+
+## Recuperación de contraseña
+
+Flujo:
+
+1. Usuario solicita reset en `/forgot-password` (POST a `/api/auth/forgot-password`).
+2. Se genera un token con expiración (30 min) y se guarda su **hash** en SQLite (`password_reset_tokens`).
+3. Usuario abre el enlace y cambia su contraseña en `/reset-password?token=...` (POST a `/api/auth/reset-password`).
+
+Comportamiento importante:
+
+- En **desarrollo**, la API devuelve `resetUrl` para que puedas probar sin email.
+- En **producción**, por seguridad la API **no** devuelve el token/enlace en la respuesta.
+	- Si hay SMTP configurado (`SMTP_*`) y el usuario tiene `email`, el sistema envía el enlace por correo.
+	- Si el usuario no tiene email, no hay forma de entregar el enlace: asigna email desde el panel admin.
+
+### Proveedores gratis (recomendación)
+
+Esto funciona con cualquier SMTP. Opciones típicas con plan free:
+
+- Brevo (Sendinblue)
+- Mailjet
+- SMTP2GO
+
+Nota: Gmail puede funcionar, pero suele requerir App Password y ajustes extra.
+
+## Loader global
+
+Hay un loader global tipo overlay (robot) para acciones de red/largas. Se controla con un provider y se usa en flows principales (login, admin, perfil, logout, etc.).

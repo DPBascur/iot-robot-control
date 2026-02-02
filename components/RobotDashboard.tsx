@@ -29,7 +29,8 @@ export function RobotDashboard() {
     speed: 0,
     battery: 100,
     temperature: 25,
-    timestamp: Date.now(),
+    // Evita mismatch SSR/cliente (Date.now cambia entre render server y client)
+    timestamp: 0,
   });
 
   const [speedHistory, setSpeedHistory] = useState<number[]>(() => Array.from({ length: 12 }, () => 0));

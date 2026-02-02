@@ -6,8 +6,10 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, LogOut, Menu, Settings, Shield, User, X } from 'lucide-react';
 
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useLoading } from '@/components/LoadingProvider';
 
 export function Sidebar() {
+  const { show, hide } = useLoading();
   const [isOpen, setIsOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [me, setMe] = useState<null | { username: string; role: 'admin' | 'user' }>(null);
@@ -54,20 +56,54 @@ export function Sidebar() {
   const onLogout = async () => {
     if (loggingOut) return;
     setLoggingOut(true);
+    show('Cerrando sesión…');
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } finally {
       setIsOpen(false);
       router.replace('/login');
       setLoggingOut(false);
+      hide();
     }
   };
 
   return (
     <>
+      {/* Topbar Mobile */}
+      <header
+        className="sm:hidden fixed left-0 top-0 right-0 z-50 flex h-14 items-center justify-between px-3"
+        style={{ backgroundColor: 'var(--sidebar-bg)', color: 'var(--sidebar-text)' }}
+      >
+        <button
+          type="button"
+          onClick={() => setIsOpen((v) => !v)}
+          className="p-2 rounded-lg transition-colors"
+          style={{ color: 'var(--sidebar-text)' }}
+          aria-label={isOpen ? 'Cerrar menú' : 'Abrir menú'}
+          aria-expanded={isOpen}
+        >
+          {isOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            type="button"
+            onClick={onLogout}
+            disabled={loggingOut}
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: 'var(--sidebar-text)', opacity: loggingOut ? 0.7 : 1 }}
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+          >
+            <LogOut size={20} />
+          </button>
+        </div>
+      </header>
+
       {/* Sidebar Desktop */}
       <aside 
-        className="fixed left-0 top-0 h-full w-20 flex flex-col items-center py-5 z-50"
+        className="hidden sm:flex fixed left-0 top-0 h-full w-20 flex-col items-center py-5 z-50"
         style={{ backgroundColor: 'var(--sidebar-bg)' }}
       >
         {/* Menu Button */}

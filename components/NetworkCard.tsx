@@ -26,7 +26,8 @@ export function NetworkCard({
     if (bars && bars.length > 0) return bars.map((v) => clamp(v, 0, 100));
     // Generación simple: 11 barras alrededor de la fuerza principal
     return Array.from({ length: 11 }, (_, i) => {
-      const jitter = (Math.sin(i * 1.2) * 10 + Math.random() * 8) * 0.6;
+      // Evita Math.random() para que SSR y cliente coincidan (sin hydration mismatch)
+      const jitter = Math.sin(i * 1.2) * 6 + Math.sin(i * 0.65) * 3;
       return clamp(normalized + jitter - (i % 3) * 4, 8, 100);
     });
   }, [bars, normalized]);
