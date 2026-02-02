@@ -6,8 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "socket": "ts-node server/dev-socket-server.ts",
-    "robot": "ts-node server/sim-robot.ts",
+    "socket": "ts-node -P tsconfig.socket.json server/dev-socket-server.ts",
+    "robot": "ts-node -P tsconfig.socket.json server/sim-robot.ts",
     "dev:all": "concurrently \"npm run dev\" \"npm run socket\""
   },
   "dependencies": {
