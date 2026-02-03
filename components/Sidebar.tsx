@@ -58,7 +58,11 @@ export function Sidebar() {
     setLoggingOut(true);
     show('Cerrando sesión…');
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        cache: 'no-store',
+        credentials: 'include',
+      });
     } finally {
       setIsOpen(false);
       router.replace('/login');

@@ -2,29 +2,32 @@ import { NextResponse } from 'next/server';
 
 import { COOKIE_NAME_DEV, COOKIE_NAME_HOST } from '@/lib/session';
 
+export const runtime = 'nodejs';
+
+function clearCookie(
+  res: NextResponse,
+  options: { name: string; secure: boolean }
+) {
+  res.cookies.set({
+    name: options.name,
+    value: '',
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: options.secure,
+    path: '/',
+    maxAge: 0,
+    expires: new Date(0),
+  });
+}
+
 export async function POST() {
   const res = NextResponse.json({ ok: true });
+  res.headers.set('Cache-Control', 'no-store');
 
-  for (const name of [COOKIE_NAME_HOST, COOKIE_NAME_DEV]) {
-    res.cookies.set({
-      name,
-      value: '',
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: true,
-      path: '/',
-      maxAge: 0,
-    });
-    res.cookies.set({
-      name,
-      value: '',
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: false,
-      path: '/',
-      maxAge: 0,
-    });
-  }
+  // Importante: no enviar múltiples Set-Cookie del MISMO nombre con atributos distintos.
+  // Algunos browsers pueden quedarse con el último y dejar la cookie viva (especialmente con __Host-).
+  clearCookie(res, { name: COOKIE_NAME_HOST, secure: true });
+  clearCookie(res, { name: COOKIE_NAME_DEV, secure: false });
 
   return res;
 }
