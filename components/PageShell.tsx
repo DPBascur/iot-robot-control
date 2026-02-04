@@ -10,12 +10,12 @@ export function PageShell({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-svh" style={{ backgroundColor: 'var(--app-bg)' }}>
+    <div className="min-h-svh anim-fade-in" style={{ backgroundColor: 'var(--app-bg)' }}>
       <Sidebar />
 
       <main className="pt-16 px-4 pb-6 sm:pt-0 sm:ml-20 sm:p-6">
         <div
-          className="flex items-center justify-between rounded-xl border px-4 py-3 mb-4 sm:px-5 sm:mb-6"
+          className="flex items-center justify-between rounded-xl border px-4 py-3 mb-4 sm:px-5 sm:mb-6 anim-slide-down"
           style={{
             backgroundColor: 'var(--header-bg)',
             borderColor: 'var(--border)',

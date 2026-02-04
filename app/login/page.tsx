@@ -182,7 +182,9 @@ export default function LoginPage() {
       </div>
 
       <div className="pointer-events-auto absolute right-4 top-4">
-        <ThemeToggle />
+        <div className="pressable">
+          <ThemeToggle />
+        </div>
       </div>
 
       <section className="w-full max-w-md">

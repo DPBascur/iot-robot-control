@@ -3,6 +3,12 @@ import "../styles/globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LoadingProvider } from "@/components/LoadingProvider";
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover" as const,
+};
+
 export const metadata: Metadata = {
   title: "IoT Robot Control",
   description: "Control de robot IoT",

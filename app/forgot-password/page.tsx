@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
 
       <section className="w-full max-w-md">
         <div
-          className="border px-7 pb-7 pt-7"
+          className="border px-7 pb-7 pt-7 anim-fade-up"
           style={{
             background: 'var(--auth-card-bg)',
             borderColor: 'var(--auth-card-border)',
@@ -144,7 +144,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={!canSubmit}
-              className="h-11 w-full rounded-md font-semibold"
+              className="h-11 w-full rounded-md font-semibold pressable"
               style={{
                 backgroundColor: canSubmit ? 'var(--auth-btn-bg)' : 'var(--auth-btn-disabled-bg)',
                 color: 'var(--auth-btn-fg)',

@@ -34,7 +34,7 @@ export function NetworkCard({
 
   return (
     <div
-      className="p-6 border"
+      className="p-6 border hover-lift"
       style={{
         backgroundColor: 'var(--card-bg)',
         borderColor: 'var(--border)',

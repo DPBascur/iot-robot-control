@@ -71,7 +71,7 @@ export function BatteryCard({
 
   return (
     <div 
-      className="p-6 border"
+      className="p-6 border hover-lift"
       style={{
         backgroundColor: 'var(--card-bg)',
         borderColor: 'var(--border)',
@@ -84,7 +84,7 @@ export function BatteryCard({
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Batería</h3>
         <button 
-          className="hover:opacity-70 transition-opacity"
+          className="hover:opacity-70 transition-opacity pressable"
           style={{ color: 'var(--text-secondary)' }}
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

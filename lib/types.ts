@@ -1,6 +1,7 @@
 // Tipos compartidos entre cliente y servidor
 
 export interface RobotCommand {
+  robotId?: string;
   throttle: number;  // -100 a 100
   steer: number;     // -90 a 90
   // Opcional: control de cámara (pan/tilt) y límite de potencia
@@ -14,6 +15,7 @@ export interface RobotCommand {
 }
 
 export interface TelemetryData {
+  robotId?: string;
   speed: number;
   battery: number;
   temperature: number;

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { connectSocket } from '@/lib/socket';
 import type { TelemetryData } from '@/lib/types';
+import { useSelectedRobotId } from '@/lib/robotSelection';
 
 import { BatteryCard } from '@/components/BatteryCard';
 import { NetworkCard } from '@/components/NetworkCard';
@@ -24,7 +25,9 @@ function formatAgo(timestamp?: number) {
 }
 
 export function RobotDashboard() {
+  const { robotId } = useSelectedRobotId();
   const [connected, setConnected] = useState(false);
+  const [robotOnline, setRobotOnline] = useState(false);
   const [telemetry, setTelemetry] = useState<TelemetryData>({
     speed: 0,
     battery: 100,
@@ -39,13 +42,34 @@ export function RobotDashboard() {
   const lastTelemetryRef = useRef<number>(telemetry.timestamp);
 
   useEffect(() => {
+    // Marca OFFLINE si no llega telemetría reciente
+    const interval = window.setInterval(() => {
+      const last = lastTelemetryRef.current || 0;
+      const recent = last > 0 && Date.now() - last <= 3500;
+      setRobotOnline(connected && recent);
+    }, 500);
+
+    return () => window.clearInterval(interval);
+  }, [connected]);
+
+  useEffect(() => {
     const socket = connectSocket();
 
-    const onConnect = () => setConnected(true);
-    const onDisconnect = () => setConnected(false);
-    const onConnectError = () => setConnected(false);
+    const onConnect = () => {
+      setConnected(true);
+      socket.emit('robot:join', { robotId });
+    };
+    const onDisconnect = () => {
+      setConnected(false);
+      setRobotOnline(false);
+    };
+    const onConnectError = () => {
+      setConnected(false);
+      setRobotOnline(false);
+    };
 
     const onTelemetry = (data: TelemetryData) => {
+      if (data?.robotId && data.robotId !== robotId) return;
       lastTelemetryRef.current = data.timestamp;
       setTelemetry(data);
 
@@ -67,20 +91,24 @@ export function RobotDashboard() {
     socket.on('connect_error', onConnectError);
     socket.on('robot:telemetry', onTelemetry);
 
+    // Si ya estaba conectado y cambias de robotId, únete al room nuevo
+    if (socket.connected) socket.emit('robot:join', { robotId });
+
     return () => {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
       socket.off('connect_error', onConnectError);
       socket.off('robot:telemetry', onTelemetry);
     };
-  }, []);
+  }, [robotId]);
 
   const xLabels = useMemo(() => Array.from({ length: speedHistory.length }, (_, i) => `${i + 1}`), [speedHistory.length]);
 
   const robotDetail = useMemo(() => {
     const last = lastTelemetryRef.current;
-    return connected ? `Última telemetría: ${formatAgo(last)}` : 'Sin conexión al servidor';
-  }, [connected]);
+    if (!connected) return 'Sin conexión al servidor';
+    return robotOnline ? `Telemetría: ${formatAgo(last)}` : `Sin telemetría: ${formatAgo(last)}`;
+  }, [connected, robotOnline]);
 
   const networkDetail = useMemo(() => {
     const last = lastTelemetryRef.current;
@@ -88,7 +116,7 @@ export function RobotDashboard() {
   }, []);
 
   return (
-    <>
+    <div className="anim-fade-in">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <BatteryCard
           batteryPercent={telemetry.battery}
@@ -104,8 +132,8 @@ export function RobotDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <StatusCard
           title="Estado del Robot:"
-          status={connected ? 'ONLINE' : 'OFFLINE'}
-          online={connected}
+          status={robotOnline ? 'ONLINE' : 'OFFLINE'}
+          online={robotOnline}
           type="robot"
           detail={robotDetail}
         />
@@ -116,6 +144,6 @@ export function RobotDashboard() {
           detail={networkDetail}
         />
       </div>
-    </>
+    </div>
   );
 }

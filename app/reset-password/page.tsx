@@ -81,7 +81,7 @@ export default function ResetPasswordPage() {
 
       <section className="w-full max-w-md">
         <div
-          className="border px-7 pb-7 pt-7"
+          className="border px-7 pb-7 pt-7 anim-fade-up"
           style={{
             background: 'var(--auth-card-bg)',
             borderColor: 'var(--auth-card-border)',
@@ -125,7 +125,7 @@ export default function ResetPasswordPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md pressable"
                 style={{ color: 'var(--text-secondary)' }}
                 aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
@@ -191,7 +191,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={!canSubmit}
-              className="h-11 w-full rounded-md font-semibold"
+              className="h-11 w-full rounded-md font-semibold pressable"
               style={{
                 backgroundColor: canSubmit ? 'var(--auth-btn-bg)' : 'var(--auth-btn-disabled-bg)',
                 color: 'var(--auth-btn-fg)',

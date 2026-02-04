@@ -7,12 +7,14 @@ import { LayoutDashboard, LogOut, Menu, Settings, Shield, User, X } from 'lucide
 
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useLoading } from '@/components/LoadingProvider';
+import { useSelectedRobotId } from '@/lib/robotSelection';
 
 export function Sidebar() {
   const { show, hide } = useLoading();
   const [isOpen, setIsOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [me, setMe] = useState<null | { username: string; role: 'admin' | 'user' }>(null);
+  const { robotId, availableRobotIds, setRobotId } = useSelectedRobotId();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -81,7 +83,7 @@ export function Sidebar() {
         <button
           type="button"
           onClick={() => setIsOpen((v) => !v)}
-          className="p-2 rounded-lg transition-colors"
+          className="p-2 rounded-lg transition-colors pressable"
           style={{ color: 'var(--sidebar-text)' }}
           aria-label={isOpen ? 'Cerrar menú' : 'Abrir menú'}
           aria-expanded={isOpen}
@@ -90,12 +92,32 @@ export function Sidebar() {
         </button>
 
         <div className="flex items-center gap-2">
+          {availableRobotIds.length > 1 && (
+            <select
+              value={robotId}
+              onChange={(e) => setRobotId(e.target.value)}
+              className="text-xs rounded-md border px-2 py-1"
+              style={{
+                backgroundColor: 'transparent',
+                color: 'var(--sidebar-text)',
+                borderColor: 'rgba(236, 253, 245, 0.35)',
+              }}
+              aria-label="Seleccionar robot"
+              title="Seleccionar robot"
+            >
+              {availableRobotIds.map((id) => (
+                <option key={id} value={id} style={{ color: 'black' }}>
+                  {id}
+                </option>
+              ))}
+            </select>
+          )}
           <ThemeToggle />
           <button
             type="button"
             onClick={onLogout}
             disabled={loggingOut}
-            className="p-2 rounded-lg transition-colors"
+            className="p-2 rounded-lg transition-colors pressable"
             style={{ color: 'var(--sidebar-text)', opacity: loggingOut ? 0.7 : 1 }}
             aria-label="Cerrar sesión"
             title="Cerrar sesión"
@@ -110,10 +132,34 @@ export function Sidebar() {
         className="hidden sm:flex fixed left-0 top-0 h-full w-20 flex-col items-center py-5 z-50"
         style={{ backgroundColor: 'var(--sidebar-bg)' }}
       >
+        {availableRobotIds.length > 1 && (
+          <div className="mb-3">
+            <select
+              value={robotId}
+              onChange={(e) => setRobotId(e.target.value)}
+              className="text-[10px] rounded-md border px-1 py-1"
+              style={{
+                backgroundColor: 'transparent',
+                color: 'var(--sidebar-text)',
+                borderColor: 'rgba(236, 253, 245, 0.35)',
+                width: 64,
+              }}
+              aria-label="Robot"
+              title="Robot"
+            >
+              {availableRobotIds.map((id) => (
+                <option key={id} value={id} style={{ color: 'black' }}>
+                  {id}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* Menu Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="p-3 rounded-lg transition-colors"
+          className="p-3 rounded-lg transition-colors pressable"
           style={{ color: 'var(--sidebar-text)' }}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = 'var(--sidebar-hover)';
@@ -143,7 +189,7 @@ export function Sidebar() {
           type="button"
           onClick={onLogout}
           disabled={loggingOut}
-          className="mb-4 p-3 rounded-lg transition-colors"
+          className="mb-4 p-3 rounded-lg transition-colors pressable"
           style={{ color: 'var(--sidebar-text)', opacity: loggingOut ? 0.7 : 1 }}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = 'var(--sidebar-hover)';

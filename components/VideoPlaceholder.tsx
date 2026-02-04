@@ -1,9 +1,9 @@
 'use client';
 
-export default function VideoPlaceholder() {
+export default function VideoPlaceholder({ fill }: { fill?: boolean }) {
   return (
     <div
-      className="w-full aspect-video border flex items-center justify-center"
+      className={`${fill ? 'w-full h-full' : 'w-full aspect-video'} border flex items-center justify-center`}
       style={{
         backgroundColor: 'var(--app-bg)',
         borderColor: 'var(--border)',

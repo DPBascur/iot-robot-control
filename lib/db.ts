@@ -35,6 +35,16 @@ function migrate(db: SqliteDatabase) {
   `);
 
   db.exec(`
+    CREATE TABLE IF NOT EXISTS robots (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      robot_id TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+
+  db.exec(`
     CREATE TABLE IF NOT EXISTS password_reset_tokens (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,

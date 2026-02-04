@@ -24,6 +24,8 @@ services:
       NODE_ENV: production
       # En prod con Nginx se recomienda same-origin. Puedes dejarlo vacío.
       NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-}
+      # Multi-robot (máx 2): lista para el selector en UI
+      NEXT_PUBLIC_ROBOT_IDS: ${NEXT_PUBLIC_ROBOT_IDS:-robot-001,robot-002}
     volumes:
       - robot_data:/app/data
     expose:
@@ -42,6 +44,10 @@ services:
       - .env
     environment:
       NODE_ENV: production
+      # Allowlist de robots aceptados por el servidor Socket.IO
+      ROBOT_IDS: ${ROBOT_IDS:-robot-001,robot-002}
+      # Opcional: restringe los origins permitidos por Socket.IO (coma-separado)
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
     expose:
       - "3001"
     networks:

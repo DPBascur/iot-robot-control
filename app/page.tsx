@@ -4,16 +4,17 @@ import { PageShell } from '@/components/PageShell';
 export default function Home() {
   return (
     <PageShell title="Panel IOT-ROBOT">
-      <div className="max-w-5xl">
+      <div className="max-w-5xl anim-fade-in">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link
             href="/dashboard"
-            className="p-4 sm:p-6 border transition-transform"
+            className="p-4 sm:p-6 border transition-transform hover-lift pressable anim-fade-up"
             style={{
               backgroundColor: 'var(--card-bg)',
               borderColor: 'var(--border)',
               borderRadius: 'var(--radius-xl)',
               boxShadow: 'var(--card-shadow)',
+              animationDelay: '40ms',
             }}
           >
             <h2 className="text-lg font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
@@ -26,12 +27,13 @@ export default function Home() {
 
           <Link
             href="/drive"
-            className="p-4 sm:p-6 border transition-transform"
+            className="p-4 sm:p-6 border transition-transform hover-lift pressable anim-fade-up"
             style={{
               backgroundColor: 'var(--card-bg)',
               borderColor: 'var(--border)',
               borderRadius: 'var(--radius-xl)',
               boxShadow: 'var(--card-shadow)',
+              animationDelay: '90ms',
             }}
           >
             <h2 className="text-lg font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
@@ -44,12 +46,13 @@ export default function Home() {
 
           <Link
             href="/admin"
-            className="p-4 sm:p-6 border transition-transform"
+            className="p-4 sm:p-6 border transition-transform hover-lift pressable anim-fade-up"
             style={{
               backgroundColor: 'var(--card-bg)',
               borderColor: 'var(--border)',
               borderRadius: 'var(--radius-xl)',
               boxShadow: 'var(--card-shadow)',
+              animationDelay: '140ms',
             }}
           >
             <h2 className="text-lg font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
