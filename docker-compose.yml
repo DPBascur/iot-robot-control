@@ -6,10 +6,10 @@ services:
       - socket
     ports:
       - "80:80"
-      # Para TLS, añade 443 y monta certificados (LetsEncrypt)
-      # - "443:443"
+      - "443:443"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
     networks:
       - appnet
     restart: unless-stopped
